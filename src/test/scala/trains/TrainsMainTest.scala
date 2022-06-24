@@ -51,7 +51,7 @@ class TrainsMainTest extends AnyFlatSpec with Matchers {
   }
 
   "" should "work correctly for first empty map" in {
-    val t1 = Train(1, List(s1, s4, s3, s2))
+    val t1 = Train(1, List())
     val m = Map(
       (s1, 0) -> Set(t1),
       (s4, 2) -> Set(t1),
@@ -62,7 +62,7 @@ class TrainsMainTest extends AnyFlatSpec with Matchers {
   }
 
   "" should "work correctly for second empty map" in {
-    val t1 = Train(1, List(s1, s4, s3, s2))
+    val t1 = Train(1, List())
     val m = Map(
       (s1, 0) -> Set(t1),
       (s4, 2) -> Set(t1),
@@ -73,8 +73,8 @@ class TrainsMainTest extends AnyFlatSpec with Matchers {
   }
 
   "" should "work two maps without intersections" in {
-    val t1 = Train(1, List(s1, s4, s3, s2))
-    val t2 = Train(1, List(s2, s3, s2))
+    val t1 = Train(1, List())
+    val t2 = Train(2, List())
     val m1 = Map(
       (s1, 0) -> Set(t1),
       (s4, 2) -> Set(t1),
@@ -98,8 +98,8 @@ class TrainsMainTest extends AnyFlatSpec with Matchers {
   }
 
   "" should "work two maps with intersections" in {
-    val t1 = Train(1, List(s2, s4, s3, s1))
-    val t2 = Train(1, List(s2, s3, s2))
+    val t1 = Train(1, List())
+    val t2 = Train(2, List())
     val m1 = Map(
       (s2, 0) -> Set(t1),
       (s4, 4) -> Set(t1),

@@ -23,4 +23,12 @@ object TrainsMain {
 
   val map: Map[(Station, TimeStamp), Set[Train]] = trains.map(trainToStationsMap).foldLeft(Map.empty[(Station, TimeStamp), Set[Train]])(mergeTwoMaps)
 
+  def isCrash(m: Map[(Station, TimeStamp), Set[Train]]): Boolean = {
+    m.exists(x => x._1._1.capacity < x._2.size )
+  }
+
+  def mapCrashes(m: Map[(Station, TimeStamp), Set[Train]]): Map[(Station, TimeStamp), Set[Train]] = {
+    m.filter(x => x._1._1.capacity < x._2.size)
+  }
+
 }
