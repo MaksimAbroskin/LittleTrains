@@ -2,7 +2,8 @@ package trains
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import TrainsMain._
+import trains.Models.{Station, Train}
+import trains.TrainsMain.{mergeTwoMaps, trainToStationsMap}
 
 class TrainsMainTest extends AnyFlatSpec with Matchers {
   implicit val roadsMatrix: Array[Array[Int]] = Array(

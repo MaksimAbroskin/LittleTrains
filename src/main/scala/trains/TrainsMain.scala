@@ -1,9 +1,8 @@
 package trains
 
-object TrainsMain {
-  implicit val roadsMatrix: Array[Array[Int]] = Array.empty
-  val trains: List[Train] = Nil
+import trains.Models.{Station, Train}
 
+object TrainsMain {
   def trainToStationsMap(t: Train)(implicit roadsMatrix: Array[Array[Int]]): Map[(Station, TimeStamp), Set[Train]] = {
     @annotation.tailrec
     def help(s: List[Station], timestamp: TimeStamp, acc: Map[(Station, TimeStamp), Set[Train]]): Map[(Station, TimeStamp), Set[Train]] = {
@@ -21,7 +20,7 @@ object TrainsMain {
   def mergeTwoMaps(a: Map[(Station, TimeStamp), Set[Train]], b: Map[(Station, TimeStamp), Set[Train]]): Map[(Station, TimeStamp), Set[Train]] =
     (a.keySet ++ b.keySet).map(k => k -> a.getOrElse(k, Set.empty).++(b.getOrElse(k, Set.empty))).toMap
 
-  val map: Map[(Station, TimeStamp), Set[Train]] = trains.map(trainToStationsMap).foldLeft(Map.empty[(Station, TimeStamp), Set[Train]])(mergeTwoMaps)
+//  val map: Map[(Station, TimeStamp), Set[Train]] = trains.map(trainToStationsMap).foldLeft(Map.empty[(Station, TimeStamp), Set[Train]])(mergeTwoMaps)
 
   def isCrash(m: Map[(Station, TimeStamp), Set[Train]]): Boolean = {
     m.exists(x => x._1._1.capacity < x._2.size )
