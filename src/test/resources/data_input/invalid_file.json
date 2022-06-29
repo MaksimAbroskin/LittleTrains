@@ -1,0 +1,11 @@
+[
+  {
+    "from": {
+      "station_capacity": 1
+    },
+    "to": {
+      "station_name": 2
+    },
+    "distance": 3
+  }
+]

@@ -54,8 +54,12 @@ object Models {
     val message: String
   }
 
-  case class FileParsingErrorMessage(err: String) extends ErrorMessage {
-    override val message: String = "Error during parsing file with error: "
+  case class FileParsingErrorMessage() extends ErrorMessage {
+    override val message: String = s"Failed to parse invalid json-file"
+  }
+
+  case class EmptyFileErrorMessage(fileName: String) extends ErrorMessage {
+    override val message: String = s"There is no data in file $fileName"
   }
 
 }
