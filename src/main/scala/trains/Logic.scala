@@ -1,17 +1,19 @@
 package trains
 
-import trains.Models.{Station, Train}
+import trains.Models.{ErrorMessage, NoSuchRoadErrorMessage, Station, Train}
 
 object Logic {
-  def trainToStationsMap(t: Train)(roadsMatrix: List[List[Int]]): Map[(Station, TimeStamp), Set[Train]] = {
+  def trainToStationsMap(t: Train)(roadsMatrix: List[List[Int]]): Either[ErrorMessage, Map[(Station, TimeStamp), Set[Train]]] = {
     @annotation.tailrec
-    def help(s: List[Station], timestamp: TimeStamp, acc: Map[(Station, TimeStamp), Set[Train]]): Map[(Station, TimeStamp), Set[Train]] = {
+    def help(s: List[Station], timestamp: TimeStamp, acc: Map[(Station, TimeStamp), Set[Train]]): Either[ErrorMessage, Map[(Station, TimeStamp), Set[Train]]] = {
       s match {
-        case Nil => acc
-        case s :: Nil => acc.updated((s, timestamp), acc.getOrElse((s, timestamp), Set.empty) + t)
+        case Nil => Right(acc)
+        case s :: Nil => Right(acc.updated((s, timestamp), acc.getOrElse((s, timestamp), Set.empty) + t))
         case cur :: next :: tail =>
           val trainsListNow = acc.getOrElse((cur, timestamp), Set.empty)
-          help(next :: tail, timestamp + (roadsMatrix(cur.id - 1)(next.id - 1) / t.speed), acc.updated((cur, timestamp), trainsListNow + t))
+          val road = roadsMatrix(cur.id - 1)(next.id - 1)
+          if (road == -1) Left(NoSuchRoadErrorMessage(cur, next))
+          else help(next :: tail, timestamp + (roadsMatrix(cur.id - 1)(next.id - 1) / t.speed), acc.updated((cur, timestamp), trainsListNow + t))
       }
     }
     help(t.route, 0, Map.empty)

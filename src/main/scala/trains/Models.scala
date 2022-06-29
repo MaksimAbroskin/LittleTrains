@@ -62,4 +62,8 @@ object Models {
     override val message: String = s"There is no data in file $fileName"
   }
 
+  case class NoSuchRoadErrorMessage(s1: Station, s2: Station) extends ErrorMessage {
+    override val message: String = s"No road between stations with ids = ${s1.id} and ${s2.id}"
+  }
+
 }
