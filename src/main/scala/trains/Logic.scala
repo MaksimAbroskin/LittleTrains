@@ -3,9 +3,9 @@ package trains
 import trains.Models.{ErrorMessage, NoSuchRoadErrorMessage, Station, Train}
 
 object Logic {
-  def trainToStationsMap(t: Train)(roadsMatrix: List[List[Int]]): Either[ErrorMessage, Map[(Station, TimeStamp), Set[Train]]] = {
+  def trainToSchedule(t: Train)(roadsMatrix: RoadsMatrix): Either[ErrorMessage, Schedule] = {
     @annotation.tailrec
-    def help(s: List[Station], timestamp: TimeStamp, acc: Map[(Station, TimeStamp), Set[Train]]): Either[ErrorMessage, Map[(Station, TimeStamp), Set[Train]]] = {
+    def help(s: List[Station], timestamp: TimeStamp, acc: Schedule): Either[ErrorMessage, Schedule] = {
       s match {
         case Nil => Right(acc)
         case s :: Nil => Right(acc.updated((s, timestamp), acc.getOrElse((s, timestamp), Set.empty) + t))
@@ -19,14 +19,14 @@ object Logic {
     help(t.route, 0, Map.empty)
   }
 
-  def mergeTwoMaps(a: Map[(Station, TimeStamp), Set[Train]], b: Map[(Station, TimeStamp), Set[Train]]): Map[(Station, TimeStamp), Set[Train]] =
+  def mergeTwoSchedules(a: Schedule, b: Schedule): Schedule =
     (a.keySet ++ b.keySet).map(k => k -> a.getOrElse(k, Set.empty).++(b.getOrElse(k, Set.empty))).toMap
 
-  def isCrash(m: Map[(Station, TimeStamp), Set[Train]]): Boolean = {
+  def isCrash(m: Schedule): Boolean = {
     m.exists(x => x._1._1.capacity < x._2.size )
   }
 
-  def mapCrashes(m: Map[(Station, TimeStamp), Set[Train]]): Map[(Station, TimeStamp), Set[Train]] = {
+  def crashesSchedule(m: Schedule): Schedule = {
     m.filter(x => x._1._1.capacity < x._2.size)
   }
 

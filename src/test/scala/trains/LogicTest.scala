@@ -2,15 +2,15 @@ package trains
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import trains.Models.{Station, Train}
-import trains.Logic.{isCrash, mapCrashes, mergeTwoMaps, trainToStationsMap}
+import trains.Models.{NoSuchRoadErrorMessage, Station, Train}
+import trains.Logic.{isCrash, crashesSchedule, mergeTwoSchedules, trainToSchedule}
 
 class LogicTest extends AnyFlatSpec with Matchers {
-  val roadsMatrix: List[List[Int]] = List(
-    List(0 , 3 , 7 , 2),
-    List(3 , 0 , 5 , 4),
-    List(7 , 5 , 0 , 2),
-    List(2 , 4 , 2 , 0)
+  val roadsMatrix: RoadsMatrix = List(
+    List(-1, -1, 7, 2),
+    List(-1, -1, 5, 4),
+    List(7, 5, -1, 2),
+    List(2, 4, 2, -1)
   )
 
   private val s1 = Station(1, 1)
@@ -20,35 +20,44 @@ class LogicTest extends AnyFlatSpec with Matchers {
 
   "trainToStationsMap method" should "work correctly for empty route" in {
     val train = Train(1, List())
-    trainToStationsMap(train)(roadsMatrix) shouldBe Map.empty
+    trainToSchedule(train)(roadsMatrix) shouldBe Right(Map.empty)
   }
 
   "" should "work correctly for only one station" in {
     val train = Train(1, List(s2))
-    trainToStationsMap(train)(roadsMatrix) shouldBe Map((s2, 0) -> Set(train))
+    trainToSchedule(train)(roadsMatrix) shouldBe Right(Map((s2, 0) -> Set(train)))
   }
 
   "" should "work correctly for repeated station in route" in {
     val train = Train(1, List(s2, s3, s2))
-    trainToStationsMap(train)(roadsMatrix) shouldBe Map(
-      (s2, 0) -> Set(train),
-      (s3, 5) -> Set(train),
-      (s2, 10) -> Set(train)
+    trainToSchedule(train)(roadsMatrix) shouldBe Right(
+      Map(
+        (s2, 0) -> Set(train),
+        (s3, 5) -> Set(train),
+        (s2, 10) -> Set(train)
+      )
     )
   }
 
   "" should "convert Train to stations map" in {
     val train = Train(1, List(s1, s4, s3, s2))
-    trainToStationsMap(train)(roadsMatrix) shouldBe Map(
-      (s1, 0) -> Set(train),
-      (s4, 2) -> Set(train),
-      (s3, 4) -> Set(train),
-      (s2, 9) -> Set(train),
+    trainToSchedule(train)(roadsMatrix) shouldBe Right(
+      Map(
+        (s1, 0) -> Set(train),
+        (s4, 2) -> Set(train),
+        (s3, 4) -> Set(train),
+        (s2, 9) -> Set(train),
+      )
     )
   }
 
+  "" should "return NoSuchRoadErrorMessage for non-existing roads in train's route" in {
+    val train = Train(1, List(s1, s2, s4, s3))
+    trainToSchedule(train)(roadsMatrix) shouldBe Left(NoSuchRoadErrorMessage(s1, s2))
+  }
+
   "mergeTwoMaps method" should "work correctly for both empty maps" in {
-    mergeTwoMaps(Map.empty, Map.empty) shouldBe Map.empty
+    mergeTwoSchedules(Map.empty, Map.empty) shouldBe Map.empty
   }
 
   "" should "work correctly for first empty map" in {
@@ -59,7 +68,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
       (s3, 4) -> Set(t1),
       (s2, 9) -> Set(t1),
     )
-    mergeTwoMaps(m, Map.empty) shouldBe m
+    mergeTwoSchedules(m, Map.empty) shouldBe m
   }
 
   "" should "work correctly for second empty map" in {
@@ -70,7 +79,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
       (s3, 4) -> Set(t1),
       (s2, 9) -> Set(t1),
     )
-    mergeTwoMaps(Map.empty, m) shouldBe m
+    mergeTwoSchedules(Map.empty, m) shouldBe m
   }
 
   "" should "work two maps without intersections" in {
@@ -87,7 +96,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
       (s3, 5) -> Set(t2),
       (s2, 10) -> Set(t2)
     )
-    mergeTwoMaps(m1, m2) shouldBe Map(
+    mergeTwoSchedules(m1, m2) shouldBe Map(
       (s1, 0) -> Set(t1),
       (s4, 2) -> Set(t1),
       (s3, 4) -> Set(t1),
@@ -113,7 +122,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
       (s2, 10) -> Set(t2),
       (s1, 13) -> Set(t2)
     )
-    mergeTwoMaps(m1, m2) shouldBe Map(
+    mergeTwoSchedules(m1, m2) shouldBe Map(
       (s4, 4) -> Set(t1),
       (s3, 6) -> Set(t1),
       (s1, 13) -> Set(t2, t1),
@@ -125,7 +134,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
 
   "isCrash and mapCrashes" should "be false and empty for empty map" in {
     isCrash(Map.empty) shouldBe false
-    mapCrashes(Map.empty) shouldBe Map.empty
+    crashesSchedule(Map.empty) shouldBe Map.empty
   }
 
   "" should "be false and empty if no crashes" in {
@@ -142,7 +151,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
     )
 
     isCrash(m) shouldBe false
-    mapCrashes(m) shouldBe Map.empty
+    crashesSchedule(m) shouldBe Map.empty
   }
 
   "" should "be true and corresponding map if there are crashes" in {
@@ -159,7 +168,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
     )
 
     isCrash(m) shouldBe true
-    mapCrashes(m) shouldBe Map((s1, 13) -> Set(t1, t2))
+    crashesSchedule(m) shouldBe Map((s1, 13) -> Set(t1, t2))
   }
 
   "" should "be true and corresponding map if there are crash in start Station" in {
@@ -176,6 +185,6 @@ class LogicTest extends AnyFlatSpec with Matchers {
     )
 
     isCrash(m) shouldBe true
-    mapCrashes(m) shouldBe Map((s2, 0) -> Set(t1, t2))
+    crashesSchedule(m) shouldBe Map((s2, 0) -> Set(t1, t2))
   }
 }

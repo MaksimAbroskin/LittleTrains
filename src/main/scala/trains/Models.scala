@@ -34,9 +34,9 @@ object Models {
   object RoadsFileNote {
     implicit val decoder: Decoder[RoadsFileNote] = deriveDecoder
 
-    def toRoadsMatrix(notes: List[RoadsFileNote]): List[List[Int]] = {
+    def toRoadsMatrix(notes: List[RoadsFileNote]): RoadsMatrix = {
       @annotation.tailrec
-      def help(notes: List[RoadsFileNote], acc: List[List[Int]]): List[List[Int]] = {
+      def help(notes: List[RoadsFileNote], acc: RoadsMatrix): RoadsMatrix = {
         notes match {
           case Nil => acc
           case n :: tail =>

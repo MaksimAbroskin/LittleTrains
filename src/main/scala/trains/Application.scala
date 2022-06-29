@@ -3,7 +3,7 @@ package trains
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import io.circe.jawn.decode
 import trains.Models.{RoadsFileNote, Station, Train}
-import trains.Logic.{isCrash, mapCrashes, mergeTwoMaps, trainToStationsMap}
+import trains.Logic.{isCrash, crashesSchedule, mergeTwoSchedules, trainToSchedule}
 import trains.data_input.JsonDataReader
 import trains.result.WriterToFile
 
@@ -22,19 +22,19 @@ object Application extends IOApp {
       trains <- reader.readFile(trainsRoutesFilePath, decode[List[Train]], List[Train])
       r = (roads, trains) match {
         case (Right(matrix), Right(trains)) =>
-          val schedule = trains.map(trainToStationsMap(_)(matrix))
-          val commomSchedule = if (!schedule.exists(_.isLeft)) {
-            Right(schedule.map(_.getOrElse(Map.empty[(Station, TimeStamp), Set[Train]])).foldLeft(Map.empty[(Station, TimeStamp), Set[Train]])(mergeTwoMaps))
+          val schedule = trains.map(trainToSchedule(_)(matrix))
+          val commonSchedule = if (!schedule.exists(_.isLeft)) {
+            Right(schedule.map(_.getOrElse(Map.empty[(Station, TimeStamp), Set[Train]])).foldLeft(Map.empty[(Station, TimeStamp), Set[Train]])(mergeTwoSchedules))
           } else {
             Left(schedule.filter(_.isLeft).flatMap {
               case Left(v) => Some(v)
               case Right(_) => None
             })
           }
-          commomSchedule match {
+          commonSchedule match {
             case Left(err) => err.mkString(", ")
             case Right(value) =>
-              if (isCrash(value)) s"Crash points:\n${mapCrashes(value)}"
+              if (isCrash(value)) s"Crash points:\n${crashesSchedule(value)}"
               else "There were no crashes"
           }
         case (Left(mErr), Left(tErr)) => s"Roads file has error:\n\t${mErr.message}\n\nTrains file has error:\n\t${tErr.message}"
