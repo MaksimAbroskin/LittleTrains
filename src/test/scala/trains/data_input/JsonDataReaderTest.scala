@@ -22,7 +22,7 @@ class JsonDataReaderTest extends AnyFlatSpec with Matchers {
 
   "" should "return Left(FileParsingErrorMessage) for invalid file" in {
     val path = "src/test/resources/data_input/invalid_file.json"
-    reader.readFile(path, decode[List[RoadsFileNote]], RoadsFileNote.toRoadsMatrix).unsafeRunSync() shouldBe Left(FileParsingErrorMessage())
+    reader.readFile(path, decode[List[RoadsFileNote]], RoadsFileNote.toRoadsMatrix).unsafeRunSync() shouldBe Left(FileParsingErrorMessage)
   }
 
   "" should "return Right() for valid file with roads" in {

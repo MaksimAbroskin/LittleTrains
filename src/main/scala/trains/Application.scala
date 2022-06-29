@@ -11,6 +11,7 @@ object Application extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
 
     implicit val blocker: Blocker = Blocker.liftExecutionContext(executionContext)
+    val emptyMap = Map.empty[(Station, TimeStamp), Set[Train]]
 
     val reader = JsonDataReader[IO]
     val writer = WriterToFile[IO]("src/main/resources/results/result.json")
@@ -24,7 +25,7 @@ object Application extends IOApp {
         case (Right(matrix), Right(trains)) =>
           val schedule = trains.map(trainToSchedule(_)(matrix))
           val commonSchedule = if (!schedule.exists(_.isLeft)) {
-            Right(schedule.map(_.getOrElse(Map.empty[(Station, TimeStamp), Set[Train]])).foldLeft(Map.empty[(Station, TimeStamp), Set[Train]])(mergeTwoSchedules))
+            Right(schedule.map(_.getOrElse(emptyMap)).foldLeft(emptyMap)(mergeTwoSchedules))
           } else {
             Left(schedule.filter(_.isLeft).flatMap {
               case Left(v) => Some(v)

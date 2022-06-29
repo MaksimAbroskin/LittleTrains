@@ -50,11 +50,11 @@ object Models {
     }
   }
 
-  trait ErrorMessage {
+  sealed trait ErrorMessage {
     val message: String
   }
 
-  case class FileParsingErrorMessage() extends ErrorMessage {
+  case object FileParsingErrorMessage extends ErrorMessage {
     override val message: String = s"Failed to parse invalid json-file"
   }
 

@@ -82,7 +82,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
     mergeTwoSchedules(Map.empty, m) shouldBe m
   }
 
-  "" should "work two maps without intersections" in {
+  "" should "work for two maps without intersections" in {
     val t1 = Train(1, List())
     val t2 = Train(2, List())
     val m1 = Map(
@@ -107,7 +107,7 @@ class LogicTest extends AnyFlatSpec with Matchers {
     )
   }
 
-  "" should "work two maps with intersections" in {
+  "" should "work for two maps with intersections" in {
     val t1 = Train(1, List())
     val t2 = Train(2, List())
     val m1 = Map(
