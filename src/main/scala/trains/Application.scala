@@ -14,7 +14,7 @@ object Application extends IOApp {
     val emptyMap = Map.empty[(Station, TimeStamp), Set[Train]]
 
     val reader = JsonDataReader[IO]
-    val writeResultPath = "src/main/resources/results/result.json"
+    val writeResultPath = "src/main/resources/result.json"
     val roadsFilePath = "src/main/resources/roads.json"
     val trainsRoutesFilePath = "src/main/resources/trainsRoutes.json"
 
