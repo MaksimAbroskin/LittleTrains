@@ -2,8 +2,8 @@ package trains
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import io.circe.jawn.decode
+import trains.Logic.{crashesSchedule, isCrash, mergeTwoSchedules, trainToSchedule}
 import trains.Models.{RoadsFileNote, Station, Train}
-import trains.Logic.{isCrash, crashesSchedule, mergeTwoSchedules, trainToSchedule}
 import trains.data_input.JsonDataReader
 import trains.result.WriterToFile
 
@@ -14,14 +14,14 @@ object Application extends IOApp {
     val emptyMap = Map.empty[(Station, TimeStamp), Set[Train]]
 
     val reader = JsonDataReader[IO]
-    val writer = WriterToFile[IO]("src/main/resources/results/result.json")
+    val writeResultPath = "src/main/resources/results/result.json"
     val roadsFilePath = "src/main/resources/roads.json"
     val trainsRoutesFilePath = "src/main/resources/trainsRoutes.json"
 
     for {
       roads <- reader.readFile(roadsFilePath, decode[List[RoadsFileNote]], RoadsFileNote.toRoadsMatrix)
       trains <- reader.readFile(trainsRoutesFilePath, decode[List[Train]], List[Train])
-      r = (roads, trains) match {
+      result = (roads, trains) match {
         case (Right(matrix), Right(trains)) =>
           val schedule = trains.map(trainToSchedule(_)(matrix))
           val commonSchedule = if (!schedule.exists(_.isLeft)) {
@@ -34,15 +34,15 @@ object Application extends IOApp {
           }
           commonSchedule match {
             case Left(err) => err.mkString(", ")
-            case Right(value) =>
-              if (isCrash(value)) s"Crash points:\n${crashesSchedule(value)}"
+            case Right(schedule) =>
+              if (isCrash(schedule)) s"Crash points:\n${crashesSchedule(schedule)}"
               else "There were no crashes"
           }
         case (Left(mErr), Left(tErr)) => s"Roads file has error:\n\t${mErr.message}\n\nTrains file has error:\n\t${tErr.message}"
         case (Right(_), Left(tErr)) => s"Trains file has error:\n\t${tErr.message}"
         case (Left(mErr), Right(_)) => s"Roads file has error:\n\t${mErr.message}"
       }
-      _ <- writer.writeResult(fs2.Stream(r))
+      _ <- WriterToFile[IO](writeResultPath).writeResult(fs2.Stream(result))
     } yield ExitCode.Success
 
   }
