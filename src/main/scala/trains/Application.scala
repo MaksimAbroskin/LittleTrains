@@ -1,31 +1,38 @@
 package trains
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
-import io.circe.jawn.decode
-import trains.Logic.{crashesSchedule, isCrash, mergeTwoSchedules, trainToSchedule}
-import trains.Models.{RoadsFileNote, Station, Train}
-import trains.data_input.JsonDataReader
+import trains.Road._
+import trains.Schedule._
+import trains.Station._
+import trains.Train._
+import trains.data_input.StringDataReader
 import trains.result.WriterToFile
 
 object Application extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
 
     implicit val blocker: Blocker = Blocker.liftExecutionContext(executionContext)
-    val emptyMap = Map.empty[(Station, TimeStamp), Set[Train]]
 
-    val reader = JsonDataReader[IO]
-    val writeResultPath = "src/main/resources/result.json"
-    val roadsFilePath = "src/main/resources/roads.json"
-    val trainsRoutesFilePath = "src/main/resources/trainsRoutes.json"
+    val reader = StringDataReader[IO]
+    val writeResultPath = "src/main/resources/resultS.txt"
+    val roadsFilePath = "src/main/resources/string/roadsS.txt"
+    val trainsFilePath = "src/main/resources/string/trainsS.txt"
+    val stationsFilePath = "src/main/resources/string/stationsS.txt"
 
     for {
-      roads <- reader.readFile(roadsFilePath, decode[List[RoadsFileNote]], RoadsFileNote.toRoadsMatrix)
-      trains <- reader.readFile(trainsRoutesFilePath, decode[List[Train]], List[Train])
-      result = (roads, trains) match {
-        case (Right(matrix), Right(trains)) =>
-          val schedule = trains.map(trainToSchedule(_)(matrix))
+      roads <- reader.readFile(roadsFilePath, roadFromString)
+      stations <- reader.readFile(stationsFilePath, stationFromString)
+      trains <- reader.readFile(trainsFilePath, trainFromString)
+      roadSet = flattenRoadSet(roads)
+      stationSet = flattenStationSet(stations)
+      trainSet = flattenTrainSet(trains)
+      result = (roadSet, stationSet, trainSet) match {
+        case (Right(r), Right(s), Right(t)) =>
+          val stationsInfo = stationSetToMap(s)
+          val roadsInfo = roadSetToMap(r)
+          val schedule = t.map(trainToSchedule(_)(roadsInfo))
           val commonSchedule = if (!schedule.exists(_.isLeft)) {
-            Right(schedule.map(_.getOrElse(emptyMap)).foldLeft(emptyMap)(mergeTwoSchedules))
+            Right(stationsSchToCommonMap(schedule.flatMap(_.getOrElse(Set.empty[Schedule]))))
           } else {
             Left(schedule.filter(_.isLeft).flatMap {
               case Left(v) => Some(v)
@@ -35,14 +42,25 @@ object Application extends IOApp {
           commonSchedule match {
             case Left(err) => err.mkString(", ")
             case Right(schedule) =>
-              if (isCrash(schedule)) s"Crash points:\n${crashesSchedule(schedule)}"
+              if (isCrash(schedule, stationsInfo)) s"Crash points:\n${crashesSchedule(schedule, stationsInfo)}"
               else "There were no crashes"
           }
-        case (Left(mErr), Left(tErr)) => s"Roads file has error:\n\t${mErr.message}\n\nTrains file has error:\n\t${tErr.message}"
-        case (Right(_), Left(tErr)) => s"Trains file has error:\n\t${tErr.message}"
-        case (Left(mErr), Right(_)) => s"Roads file has error:\n\t${mErr.message}"
+        case (r, s, t) =>
+          val roadsFileError = r match {
+            case Left(e) => e.message
+            case Right(_) => ""
+          }
+          val stationsFileError = s match {
+            case Left(e) => e.message
+            case Right(_) => ""
+          }
+          val trainsFileError = t match {
+            case Left(e) => e.message
+            case Right(_) => ""
+          }
+          "Error during parsing files:\n" + List(roadsFileError, stationsFileError, trainsFileError).mkString("\n")
       }
-      _ <- WriterToFile[IO](writeResultPath).writeResult(fs2.Stream(result))
+            _ <- WriterToFile[IO](writeResultPath).writeResult(fs2.Stream(result))
     } yield ExitCode.Success
 
   }
