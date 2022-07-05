@@ -60,7 +60,7 @@ object Application extends IOApp {
           }
           "Error during parsing files:\n" + List(roadsFileError, stationsFileError, trainsFileError).mkString("\n")
       }
-            _ <- WriterToFile[IO](writeResultPath).writeResult(fs2.Stream(result))
+      _ <- WriterToFile[IO](writeResultPath).writeResult(fs2.Stream(result))
     } yield ExitCode.Success
 
   }

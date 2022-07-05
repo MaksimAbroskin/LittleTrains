@@ -2,7 +2,7 @@ package trains
 
 import trains.ErrorMessage.{FileParsingErrorMessage, NoSuchRoadErrorMessage}
 
-case class Train(name: String, speed: Int, route:List[String])
+case class Train(name: String, speed: Int, route: List[String])
 
 object Train {
   def trainFromString(s: String): Option[Train] = {
