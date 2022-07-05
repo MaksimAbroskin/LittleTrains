@@ -42,8 +42,12 @@ object Application extends IOApp {
           commonSchedule match {
             case Left(err) => err.mkString(", ")
             case Right(schedule) =>
-              if (isCrash(schedule)) s"Crash points:\n${crashesSchedule(schedule)}"
-              else "There were no crashes"
+              isCrash(schedule) match {
+                case Right(b) =>
+                  if (b) s"Crash points:\n${crashesSchedule(schedule).getOrElse("")}"
+                  else "There were no crashes"
+                case Left(err) => err.message
+              }
           }
         case (r, s, t) =>
           val roadsFileError = r match {

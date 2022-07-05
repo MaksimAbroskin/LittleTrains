@@ -1,5 +1,7 @@
 package trains
 
+import trains.ErrorMessage.NoSuchStationErrorMessage
+
 case class Schedule(stationName: String, timeStamp: TimeStamp, trains: Set[String])
 
 object Schedule {
@@ -10,9 +12,17 @@ object Schedule {
     }.toSet
   }
 
-  def isCrash(set: Set[Schedule])(implicit stations: Map[String, Int]): Boolean =
-    set.exists(schedule => schedule.trains.size > stations.getOrElse(schedule.stationName, 0))
+  def isCrash(set: Set[Schedule])(implicit stations: Map[String, Int]): Either[ErrorMessage, Boolean] = {
+    set.map(_.stationName).find(!stations.contains(_)) match {
+      case Some(err) => Left(NoSuchStationErrorMessage(err))
+      case None => Right(set.exists(schedule => schedule.trains.size > stations.getOrElse(schedule.stationName, 0)))
+    }
+  }
 
-  def crashesSchedule(set: Set[Schedule])(implicit stations: Map[String, Int]): Set[Schedule] =
-    set.filter(schedule => schedule.trains.size > stations.getOrElse(schedule.stationName, 0))
+  def crashesSchedule(set: Set[Schedule])(implicit stations: Map[String, Int]): Either[ErrorMessage, Set[Schedule]] = {
+    set.map(_.stationName).find(!stations.contains(_)) match {
+      case Some(err) => Left(NoSuchStationErrorMessage(err))
+      case None => Right(set.filter(schedule => schedule.trains.size > stations.getOrElse(schedule.stationName, 0)))
+    }
+  }
 }
