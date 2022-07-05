@@ -6,7 +6,7 @@ case class Road(from: String, to: String, distance: Int)
 
 object Road {
   def roadFromString(s: String): Option[Road] = {
-    val regex = "from:(.+);to:(.+);distance.(\\d+)".r
+    val regex = "from:(.+);to:(.+);distance:(\\d+)".r
     s.filterNot(_ == ' ') match {
       case regex(from, to, dist) => Some(Road(from, to, dist.toInt))
       case _ => None

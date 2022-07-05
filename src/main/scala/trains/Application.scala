@@ -14,10 +14,10 @@ object Application extends IOApp {
     implicit val blocker: Blocker = Blocker.liftExecutionContext(executionContext)
 
     val reader = StringDataReader[IO]
-    val writeResultPath = "src/main/resources/resultS.txt"
-    val roadsFilePath = "src/main/resources/string/roadsS.txt"
-    val trainsFilePath = "src/main/resources/string/trainsS.txt"
-    val stationsFilePath = "src/main/resources/string/stationsS.txt"
+    val writeResultPath = "src/main/resources/result.txt"
+    val roadsFilePath = "src/main/resources/string/roads.txt"
+    val trainsFilePath = "src/main/resources/string/trains.txt"
+    val stationsFilePath = "src/main/resources/string/stations.txt"
 
     for {
       roads <- reader.readFile(roadsFilePath, roadFromString)
@@ -28,11 +28,11 @@ object Application extends IOApp {
       trainSet = flattenTrainSet(trains)
       result = (roadSet, stationSet, trainSet) match {
         case (Right(r), Right(s), Right(t)) =>
-          val stationsInfo = stationSetToMap(s)
+          implicit val stationsInfo: Map[String, Int] = stationSetToMap(s)
           val roadsInfo = roadSetToMap(r)
           val schedule = t.map(trainToSchedule(_)(roadsInfo))
           val commonSchedule = if (!schedule.exists(_.isLeft)) {
-            Right(stationsSchToCommonMap(schedule.flatMap(_.getOrElse(Set.empty[Schedule]))))
+            Right(stationsScheduleToCommonSchedule(schedule.flatMap(_.getOrElse(Set.empty[Schedule]))))
           } else {
             Left(schedule.filter(_.isLeft).flatMap {
               case Left(v) => Some(v)
@@ -42,7 +42,7 @@ object Application extends IOApp {
           commonSchedule match {
             case Left(err) => err.mkString(", ")
             case Right(schedule) =>
-              if (isCrash(schedule, stationsInfo)) s"Crash points:\n${crashesSchedule(schedule, stationsInfo)}"
+              if (isCrash(schedule)) s"Crash points:\n${crashesSchedule(schedule)}"
               else "There were no crashes"
           }
         case (r, s, t) =>

@@ -9,10 +9,6 @@ object ErrorMessage {
     override val message: String = e
   }
 
-  case class EmptyFileErrorMessage(fileName: String) extends ErrorMessage {
-    override val message: String = s"There is no data in file $fileName"
-  }
-
   case class NoSuchRoadErrorMessage(s1: String, s2: String) extends ErrorMessage {
     override val message: String = s"No road between stations with ids = $s1 and $s2"
   }
