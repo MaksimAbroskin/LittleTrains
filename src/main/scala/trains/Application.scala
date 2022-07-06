@@ -1,6 +1,7 @@
 package trains
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
+import trains.Common.flattenOptionsSet
 import trains.Road._
 import trains.Schedule._
 import trains.Station._
@@ -16,16 +17,16 @@ object Application extends IOApp {
     val reader = StringDataReader[IO]
     val writeResultPath = "src/main/resources/result.txt"
     val roadsFilePath = "src/main/resources/string/roads.txt"
-    val trainsFilePath = "src/main/resources/string/trains.txt"
     val stationsFilePath = "src/main/resources/string/stations.txt"
+    val trainsFilePath = "src/main/resources/string/trains.txt"
 
     for {
       roads <- reader.readFile(roadsFilePath, roadFromString)
       stations <- reader.readFile(stationsFilePath, stationFromString)
       trains <- reader.readFile(trainsFilePath, trainFromString)
-      roadSet = flattenRoadSet(roads)
-      stationSet = flattenStationSet(stations)
-      trainSet = flattenTrainSet(trains)
+      roadSet = flattenOptionsSet[Road](roads)(roadsFilePath)
+      stationSet = flattenOptionsSet[Station](stations)(stationsFilePath)
+      trainSet = flattenOptionsSet[Train](trains)(trainsFilePath)
       result = (roadSet, stationSet, trainSet) match {
         case (Right(r), Right(s), Right(t)) =>
           implicit val stationsInfo: Map[String, Int] = stationSetToMap(s)
@@ -44,7 +45,7 @@ object Application extends IOApp {
             case Right(schedule) =>
               isCrash(schedule) match {
                 case Right(b) =>
-                  if (b) s"Crash points:\n${crashesSchedule(schedule).getOrElse("")}"
+                  if (b) s"Crash points:\n${crashesSchedule(schedule).getOrElse(Set.empty).mkString("\n")}"
                   else "There were no crashes"
                 case Left(err) => err.message
               }
@@ -62,7 +63,7 @@ object Application extends IOApp {
             case Left(e) => e.message
             case Right(_) => ""
           }
-          "Error during parsing files:\n" + List(roadsFileError, stationsFileError, trainsFileError).mkString("\n")
+          List(roadsFileError, stationsFileError, trainsFileError).mkString("\n")
       }
       _ <- WriterToFile[IO](writeResultPath).writeResult(fs2.Stream(result))
     } yield ExitCode.Success

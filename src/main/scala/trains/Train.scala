@@ -1,21 +1,17 @@
 package trains
 
-import trains.ErrorMessage.{FileParsingErrorMessage, NoSuchRoadErrorMessage}
+import trains.ErrorMessage.NoSuchRoadErrorMessage
 
 case class Train(name: String, speed: Int, route: List[String])
 
 object Train {
+  private val regex = "name:(.+);speed:(\\d+);route:(.+)".r
+
   def trainFromString(s: String): Option[Train] = {
-    val regex = "name:(.+);speed:(\\d+);route:(.+)".r
     s.filterNot(_ == ' ') match {
       case regex(name, speed, route) => Some(Train(name, speed.toInt, route.split(",").toList))
       case _ => None
     }
-  }
-
-  def flattenTrainSet(l: List[Option[Train]]): Either[ErrorMessage, Set[Train]] = {
-    if (l.contains(None)) Left(FileParsingErrorMessage("Trains file has an error"))
-    else Right(l.toSet.flatten)
   }
 
   def trainToSchedule(t: Train)(roadsMap: RoadsMap): Either[ErrorMessage, Set[Schedule]] = {

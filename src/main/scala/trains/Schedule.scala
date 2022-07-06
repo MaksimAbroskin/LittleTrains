@@ -2,7 +2,10 @@ package trains
 
 import trains.ErrorMessage.NoSuchStationErrorMessage
 
-case class Schedule(stationName: String, timeStamp: TimeStamp, trains: Set[String])
+case class Schedule(stationName: String, timeStamp: TimeStamp, trains: Set[String]) {
+  override def toString: String =
+    s"station_name: $stationName; time: $timeStamp; trains: ${trains.mkString(", ")}"
+}
 
 object Schedule {
 

@@ -5,8 +5,8 @@ sealed trait ErrorMessage {
 }
 
 object ErrorMessage {
-  case class FileParsingErrorMessage(e: String) extends ErrorMessage {
-    override val message: String = e
+  case class FileParsingErrorMessage(fileName: String) extends ErrorMessage {
+    override val message: String = s"Failed parsing of file $fileName"
   }
 
   case class NoSuchRoadErrorMessage(s1: String, s2: String) extends ErrorMessage {
