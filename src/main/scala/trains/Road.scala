@@ -12,6 +12,6 @@ object Road {
     }
   }
 
-  def roadSetToMap(set: Set[Road]): RoadsMap = set.map(r => Set(r.from, r.to) -> r.distance).toMap
-
+  def roadSetToMap(set: Set[Road]): RoadsMap =
+    set.map(r =>(r.from, r.to) -> r.distance).toMap ++ set.map(r =>(r.to, r.from) -> r.distance).toMap
 }

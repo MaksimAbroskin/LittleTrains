@@ -21,7 +21,7 @@ object Train {
         case Nil => Right(acc)
         case s :: Nil => Right(acc + Schedule(s, timestamp, Set(t.name)))
         case cur :: next :: tail =>
-          roadsMap.get(Set(cur, next)) match {
+          roadsMap.get((cur, next)) match {
             case Some(distance) => go(next :: tail, timestamp + (distance / t.speed), acc + Schedule(cur, timestamp, Set(t.name)))
             case None => Left(NoSuchRoadErrorMessage(cur, next))
           }
