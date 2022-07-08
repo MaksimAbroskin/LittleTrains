@@ -1,7 +1,5 @@
 package trains
 
-import trains.ErrorMessage.NoSuchRoadErrorMessage
-
 case class Train(name: String, speed: Int, route: List[String])
 
 object Train {
@@ -14,17 +12,14 @@ object Train {
     }
   }
 
-  def trainToSchedule(t: Train)(roadsMap: RoadsMap): Either[ErrorMessage, Set[Schedule]] = {
+  def trainToSchedule(t: Train)(roadsMap: RoadsMap): Set[Schedule] = {
     @annotation.tailrec
-    def go(route: List[String], timestamp: TimeStamp, acc: Set[Schedule]): Either[ErrorMessage, Set[Schedule]] = {
+    def go(route: List[String], timestamp: TimeStamp, acc: Set[Schedule]): Set[Schedule] = {
       route match {
-        case Nil => Right(acc)
-        case s :: Nil => Right(acc + Schedule(s, timestamp, Set(t.name)))
+        case Nil => acc
+        case s :: Nil => acc + Schedule(s, timestamp, Set(t.name))
         case cur :: next :: tail =>
-          roadsMap.get((cur, next)) match {
-            case Some(distance) => go(next :: tail, timestamp + (distance / t.speed), acc + Schedule(cur, timestamp, Set(t.name)))
-            case None => Left(NoSuchRoadErrorMessage(cur, next))
-          }
+          go(next :: tail, timestamp + (roadsMap.getOrElse((cur, next), 0) / t.speed), acc + Schedule(cur, timestamp, Set(t.name)))
       }
     }
 

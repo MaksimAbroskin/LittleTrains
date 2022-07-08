@@ -31,24 +31,13 @@ object Application extends IOApp {
         case (Right(r), Right(s), Right(t)) =>
           implicit val stationsInfo: Map[String, Int] = stationSetToMap(s)
           val roadsInfo = roadSetToMap(r)
-          val schedule = t.map(trainToSchedule(_)(roadsInfo))
-          val commonSchedule = if (!schedule.exists(_.isLeft)) {
-            Right(stationsScheduleToCommonSchedule(schedule.flatMap(_.getOrElse(Set.empty[Schedule]))))
-          } else {
-            Left(schedule.filter(_.isLeft).flatMap {
-              case Left(v) => Some(v)
-              case Right(_) => None
-            })
-          }
-          commonSchedule match {
-            case Left(err) => err.mkString(", ")
-            case Right(schedule) =>
-              isCrash(schedule) match {
-                case Right(b) =>
-                  if (b) s"Crash points:\n${crashesSchedule(schedule).getOrElse(Set.empty).mkString("\n")}"
-                  else "There were no crashes"
-                case Left(err) => err.message
-              }
+          Validator(roadsInfo, s, t).errorsList match {
+            case Nil =>
+              val commonSchedule = stationsScheduleToCommonSchedule(t.flatMap(trainToSchedule(_)(roadsInfo)))
+              val crashes = crashesSchedule(commonSchedule)
+              if (crashes.nonEmpty) s"Crash points:\n${crashes.mkString("\n")}"
+              else "There were no crashes"
+            case l => l.mkString("\n")
           }
         case (r, s, t) =>
           val roadsFileError = r match {
