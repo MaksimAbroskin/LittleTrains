@@ -2,8 +2,9 @@ package trains
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import trains.Common.flattenOptionsSet
+import trains.RailwaySchedule._
 import trains.Road._
-import trains.Schedule._
+import trains.StationSchedule._
 import trains.Station._
 import trains.Train._
 import trains.data_input.StringDataReader
@@ -33,9 +34,12 @@ object Application extends IOApp {
           val roadsInfo = roadSetToMap(r)
           Validator(roadsInfo, s, t).errorsList match {
             case Nil =>
-              val commonSchedule = stationsScheduleToCommonSchedule(t.flatMap(trainToSchedule(_)(roadsInfo)))
-              val crashes = crashesSchedule(commonSchedule)
-              if (crashes.nonEmpty) s"Crash points:\n${crashes.mkString("\n")}"
+              val stationsSchedule = stationsScheduleToCommonSchedule(t.flatMap(trainToStationsSchedule(_)(roadsInfo)))
+              val railwaysSchedule = collectOppositeDirection(t.flatMap(trainToRailwaySchedule(_)(roadsInfo)))
+              val crashesOnStations = crashesOnStationsSchedule(stationsSchedule)
+              val crashesOnRailways = railwaysSchedule.flatMap(crashesOnRailwaysSchedule)
+              if (crashesOnStations.nonEmpty || crashesOnRailways.nonEmpty)
+                s"Crash points:\n${crashesOnStations.mkString("\n")}\n${crashesOnRailways.mkString("\n")}"
               else "There were no crashes"
             case l => l.mkString("\n")
           }

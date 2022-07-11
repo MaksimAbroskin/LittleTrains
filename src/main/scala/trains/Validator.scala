@@ -21,7 +21,7 @@ case class Validator(roads: RoadsMap, stations: Set[Station], trains: Set[Train]
   }
 
   val validateRouts: Option[ErrorMessage] = {
-    allRoutes.flatMap(listToTuplesSet).find(roads.keySet.contains(_)).map(ss => NoSuchRoadErrorMessage(ss._1, ss._2))
+    allRoutes.flatMap(listToTuplesSet).find(!roads.keySet.contains(_)).map(ss => NoSuchRoadErrorMessage(ss._1, ss._2))
   }
 
   val errorsList: List[ErrorMessage] = List(validateStations, validateRouts).flatten

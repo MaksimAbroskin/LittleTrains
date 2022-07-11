@@ -26,30 +26,30 @@ class TrainTest extends AnyFlatSpec with Matchers {
   val roadsMap: RoadsMap = Road.roadSetToMap(roads)
 
   "trainToSchedule method" should "work correctly for empty route" in {
-    trainToSchedule(Train("t1", 1, List()))(roadsMap) shouldBe Set.empty
+    trainToStationsSchedule(Train("t1", 1, List()))(roadsMap) shouldBe Set.empty
   }
 
   "" should "work correctly for only one station" in {
     val train = Train("t1", 1, List("s2"))
-    trainToSchedule(train)(roadsMap) shouldBe Set(Schedule("s2", 0, Set("t1")))
+    trainToStationsSchedule(train)(roadsMap) shouldBe Set(StationSchedule("s2", 0, Set("t1")))
   }
 
   "" should "work correctly for repeated station in route" in {
     val train = Train("t1", 1, List("s2", "s3", "s2"))
-    trainToSchedule(train)(roadsMap) shouldBe Set(
-      Schedule("s2", 0, Set("t1")),
-      Schedule("s3", 5, Set("t1")),
-      Schedule("s2", 10, Set("t1"))
+    trainToStationsSchedule(train)(roadsMap) shouldBe Set(
+      StationSchedule("s2", 0, Set("t1")),
+      StationSchedule("s3", 5, Set("t1")),
+      StationSchedule("s2", 10, Set("t1"))
     )
   }
 
   "" should "convert Train to schedule" in {
     val train = Train("t1", 1, List("s1", "s4", "s3", "s2"))
-    trainToSchedule(train)(roadsMap) shouldBe Set(
-      Schedule("s1", 0, Set("t1")),
-      Schedule("s4", 2, Set("t1")),
-      Schedule("s3", 4, Set("t1")),
-      Schedule("s2", 9, Set("t1"))
+    trainToStationsSchedule(train)(roadsMap) shouldBe Set(
+      StationSchedule("s1", 0, Set("t1")),
+      StationSchedule("s4", 2, Set("t1")),
+      StationSchedule("s3", 4, Set("t1")),
+      StationSchedule("s2", 9, Set("t1"))
     )
   }
 

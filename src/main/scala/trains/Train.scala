@@ -12,17 +12,33 @@ object Train {
     }
   }
 
-  def trainToSchedule(t: Train)(roadsMap: RoadsMap): Set[Schedule] = {
+  def trainToStationsSchedule(t: Train)(roadsMap: RoadsMap): Set[StationSchedule] = {
     @annotation.tailrec
-    def go(route: List[String], timestamp: TimeStamp, acc: Set[Schedule]): Set[Schedule] = {
+    def go(route: List[String], timestamp: TimeStamp, acc: Set[StationSchedule]): Set[StationSchedule] = {
       route match {
         case Nil => acc
-        case s :: Nil => acc + Schedule(s, timestamp, Set(t.name))
+        case s :: Nil => acc + StationSchedule(s, timestamp, Set(t.name))
         case cur :: next :: tail =>
-          go(next :: tail, timestamp + (roadsMap.getOrElse((cur, next), 0) / t.speed), acc + Schedule(cur, timestamp, Set(t.name)))
+          val nextTimeStamp = timestamp + (roadsMap.getOrElse((cur, next), 0) / t.speed)
+          go(next :: tail, nextTimeStamp, acc + StationSchedule(cur, timestamp, Set(t.name)))
       }
     }
 
     go(t.route, 0, Set.empty)
   }
+
+  def trainToRailwaySchedule(t: Train)(roadsMap: RoadsMap): Set[RailwaySchedule] = {
+    @annotation.tailrec
+    def go(route: List[String], timestamp: TimeStamp, acc: Set[RailwaySchedule]): Set[RailwaySchedule] = {
+      route match {
+        case _ :: Nil | Nil => acc
+        case cur :: next :: tail =>
+          val nextTimeStamp = timestamp + (roadsMap.getOrElse((cur, next), 0) / t.speed)
+          go(next :: tail, nextTimeStamp, acc + RailwaySchedule((cur, next), List((t.name, (timestamp, nextTimeStamp)))))
+      }
+    }
+
+    go(t.route, 0, Set.empty)
+  }
+
 }
