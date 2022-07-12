@@ -39,6 +39,12 @@ object RailwaySchedule {
     else Set(RailwaySchedule(ends, trainsAndTimes))
   }
 
+  def collectOppositeDirect(set: Set[RailwaySchedule]): Set[RailwaySchedule] = {
+    set.groupBy(rs => List(rs.ends._1, rs.ends._2).sorted).map{
+      case (k, v) => RailwaySchedule((k.head, k(1)), v.flatMap(_.trainsOnRail))
+    }.toSet
+  }
+
   def setToMap(set: Set[RailwaySchedule]): HashMap[(String, String), Set[TrainOnRail]] = {
     set.map(rs => rs.ends -> rs.trainsOnRail).toMap.to(HashMap)
   }
