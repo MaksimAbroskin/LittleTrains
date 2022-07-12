@@ -30,14 +30,13 @@ object Application extends IOApp {
       trainSet = flattenOptionsSet[Train](trains)(trainsFilePath)
       result = (roadSet, stationSet, trainSet) match {
         case (Right(r), Right(s), Right(t)) =>
-          implicit val stationsInfo: Map[String, Int] = stationSetToMap(s)
           val roadsInfo = roadSetToMap(r)
           Validator(roadsInfo, s, t).errorsList match {
             case Nil =>
               val stationsSchedule = stationsScheduleToCommonSchedule(t.flatMap(trainToStationsSchedule(_)(roadsInfo)))
-              val railwaysSchedule = collectOppositeDirection(t.flatMap(trainToRailwaySchedule(_)(roadsInfo)))
-              val crashesOnStations = crashesOnStationsSchedule(stationsSchedule)
-              val crashesOnRailways = railwaysSchedule.flatMap(crashesOnRailwaysSchedule)
+              val railwaysSchedule = t.flatMap(trainToRailwaySchedule(_)(roadsInfo))
+              val crashesOnStations = crashesOnStationsSchedule(stationsSchedule)(stationSetToMap(s))
+              val crashesOnRailways = railwaysSchedule.flatMap(crashesOnRailwaysSchedule(_)(setToMap(railwaysSchedule)))
               if (crashesOnStations.nonEmpty || crashesOnRailways.nonEmpty)
                 s"Crash points:\n${crashesOnStations.mkString("\n")}\n${crashesOnRailways.mkString("\n")}"
               else "There were no crashes"

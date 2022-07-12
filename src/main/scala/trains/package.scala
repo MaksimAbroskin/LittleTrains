@@ -1,6 +1,8 @@
+import scala.collection.immutable.HashMap
+
 package object trains {
   type TimeStamp = Int
-  type TimeRange = (Int, Int)
+  type TimeRange = (TimeStamp, TimeStamp)
   type TrainOnRail = (String, TimeRange)
-  type RoadsMap = Map[(String, String), Int]
+  type RoadsMap = HashMap[(String, String), Int]
 }

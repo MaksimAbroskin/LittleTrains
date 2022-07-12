@@ -34,7 +34,7 @@ object Train {
         case _ :: Nil | Nil => acc
         case cur :: next :: tail =>
           val nextTimeStamp = timestamp + (roadsMap.getOrElse((cur, next), 0) / t.speed)
-          go(next :: tail, nextTimeStamp, acc + RailwaySchedule((cur, next), List((t.name, (timestamp, nextTimeStamp)))))
+          go(next :: tail, nextTimeStamp, acc + RailwaySchedule((cur, next), Set((t.name, (timestamp, nextTimeStamp)))))
       }
     }
 

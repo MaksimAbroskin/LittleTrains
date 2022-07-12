@@ -58,7 +58,7 @@ class StationScheduleTest extends AnyFlatSpec with Matchers {
     )
   }
 
-  implicit val stations: Map[String, Int] = HashMap(
+  val stations: HashMap[String, Int] = HashMap(
     "s1" -> 1,
     "s2" -> 1,
     "s3" -> 1,
@@ -66,7 +66,7 @@ class StationScheduleTest extends AnyFlatSpec with Matchers {
   )
 
   "isCrash and crashesSchedule" should "be false and empty for empty set" in {
-    crashesOnStationsSchedule(Set.empty) shouldBe Set.empty
+    crashesOnStationsSchedule(Set.empty)(stations) shouldBe Set.empty
   }
 
   "" should "be false and empty if no crashes" in {
@@ -80,11 +80,11 @@ class StationScheduleTest extends AnyFlatSpec with Matchers {
       StationSchedule("s2", 10, Set("t2"))
     )
 
-    crashesOnStationsSchedule(s) shouldBe Set.empty
+    crashesOnStationsSchedule(s)(stations) shouldBe Set.empty
   }
 
   "" should "be true and corresponding set if there are crashes" in {
-    implicit val stations: Map[String, Int] = HashMap(
+    val stations: HashMap[String, Int] = HashMap(
       "s1" -> 1,
       "s2" -> 2,
       "s3" -> 1,
@@ -99,11 +99,11 @@ class StationScheduleTest extends AnyFlatSpec with Matchers {
       StationSchedule("s2", 10, Set("t2"))
     )
 
-    crashesOnStationsSchedule(m) shouldBe Set(StationSchedule("s1", 13, Set("t1", "t2")))
+    crashesOnStationsSchedule(m)(stations) shouldBe Set(StationSchedule("s1", 13, Set("t1", "t2")))
   }
 
   "" should "be true and corresponding set if there are crash in start Station" in {
-    implicit val stations: Map[String, Int] = HashMap(
+    val stations: HashMap[String, Int] = HashMap(
       "s1" -> 2,
       "s2" -> 1,
       "s3" -> 1,
@@ -118,7 +118,7 @@ class StationScheduleTest extends AnyFlatSpec with Matchers {
       StationSchedule("s2", 10, Set("t2"))
     )
 
-    crashesOnStationsSchedule(m) shouldBe Set(StationSchedule("s2", 0, Set("t1", "t2")))
+    crashesOnStationsSchedule(m)(stations) shouldBe Set(StationSchedule("s2", 0, Set("t1", "t2")))
   }
 
 }

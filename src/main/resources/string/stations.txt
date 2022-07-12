@@ -1,2 +1,3 @@
 name: s1; capacity: 1
 name: s2; capacity: 1
+name: s3; capacity: 1

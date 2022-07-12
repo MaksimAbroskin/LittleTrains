@@ -1,5 +1,7 @@
 package trains
 
+import scala.collection.immutable.HashMap
+
 case class Station(name: String, capacity: Int)
 
 object Station {
@@ -12,6 +14,6 @@ object Station {
     }
   }
 
-  def stationSetToMap(set: Set[Station]): Map[String, Int] = set.map(s => s.name -> s.capacity).toMap
+  def stationSetToMap(set: Set[Station]): HashMap[String, Int] = set.map(s => s.name -> s.capacity).to(HashMap)
 
 }

@@ -1,32 +1,46 @@
 package trains
 
-case class RailwaySchedule(ends: (String, String), trainsAndTimes: List[TrainOnRail])
+import scala.collection.immutable.HashMap
+
+case class RailwaySchedule(ends: (String, String), trainsOnRail: Set[TrainOnRail])
 
 object RailwaySchedule {
 
-  private def checkIntersection(tr1: TimeRange, tr2: TimeRange): Boolean =
-    (tr2._1 >= tr1._1 && tr2._1 < tr1._2) || (tr2._2 > tr1._1 && tr2._2 <= tr1._2) ||
-      (tr1._1 > tr2._1 && tr1._2 < tr2._2) || (tr2._1 > tr1._1 && tr2._2 < tr1._2)
+  private def checkOppositeDirectIntersection(tr1: TimeRange, tr2: TimeRange): Boolean =
+    (tr2._1 >= tr1._1 && tr2._1 < tr1._2) || (tr2._2 > tr1._1 && tr2._2 <= tr1._2)  ||
+      (tr1._1 >= tr2._1 && tr1._1 < tr2._2) || (tr1._2 > tr2._1 && tr1._2 <= tr2._2)
 
-  def crashesOnRailwaysSchedule(railway: RailwaySchedule): List[CrashOnRail] = {
+  private def checkOneDirectIntersection(tr1: TimeRange, tr2: TimeRange): Boolean =
+    (tr1._1 > tr2._1 && tr1._2 < tr2._2) || (tr2._1 > tr1._1 && tr2._2 < tr1._2)
+
+  def crashesOnRailwaysSchedule(railway: RailwaySchedule)(map: HashMap[(String, String), Set[TrainOnRail]]): Set[RailwaySchedule] = {
     @annotation.tailrec
-    def go(tnt: List[TrainOnRail], acc: List[CrashOnRail]): List[CrashOnRail] = {
+    def go(tnt: List[TrainOnRail], acc: Set[RailwaySchedule]): Set[RailwaySchedule] = {
       tnt match {
-        case _ :: Nil | Nil => acc
-        case head :: tail => go(tail, acc ++ checkTrainOnRail(head, tail).map(tup => CrashOnRail(railway.ends, tup._1, tup._2)))
+        case Nil => acc
+        case head :: tail => go(tail, acc ++
+          checkOneDirect(head, railway.ends)(map) ++
+          checkOppositeDirect(head, railway.ends)(map)
+        )
       }
     }
-    go(railway.trainsAndTimes, List.empty)
+    go(railway.trainsOnRail.toList, Set.empty)
   }
 
-  private def checkTrainOnRail(train: TrainOnRail, tnt: List[TrainOnRail]): List[(TrainOnRail, TrainOnRail)] = {
-    tnt.filter(t => checkIntersection(t._2, train._2)).map((train, _))
+  def checkOppositeDirect(train: TrainOnRail, ends: (String, String))(map: HashMap[(String, String), Set[TrainOnRail]]): Set[RailwaySchedule] = {
+    val trainsAndTimes = map.getOrElse(ends.swap, Set.empty).filter(t => checkOppositeDirectIntersection(t._2, train._2))
+    if (trainsAndTimes.isEmpty) Set.empty
+    else Set(RailwaySchedule(ends, trainsAndTimes))
   }
 
-  def collectOppositeDirection(set: Set[RailwaySchedule]): Set[RailwaySchedule] = {
-    set.groupBy(s => List(s.ends._1, s.ends._2).sorted).map{
-      case (k, v) => RailwaySchedule((k.head, k(1)), v.flatMap(_.trainsAndTimes).toList)
-    }.toSet
+  def checkOneDirect(train: TrainOnRail, ends: (String, String))(map: HashMap[(String, String), Set[TrainOnRail]]): Set[RailwaySchedule] = {
+    val trainsAndTimes = map.getOrElse(ends, Set.empty).filter(t => checkOneDirectIntersection(t._2, train._2))
+    if (trainsAndTimes.isEmpty) Set.empty
+    else Set(RailwaySchedule(ends, trainsAndTimes))
+  }
+
+  def setToMap(set: Set[RailwaySchedule]): HashMap[(String, String), Set[TrainOnRail]] = {
+    set.map(rs => rs.ends -> rs.trainsOnRail).toMap.to(HashMap)
   }
 
 }
