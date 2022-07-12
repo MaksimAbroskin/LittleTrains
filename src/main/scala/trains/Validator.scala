@@ -17,7 +17,8 @@ case class Validator(roads: RoadsMap, stations: Set[Station], trains: Set[Train]
   }
 
   val validateStations: Option[ErrorMessage] = {
-    allRoutes.flatten.find(!stations.map(_.name).contains(_)).map(NoSuchStationErrorMessage)
+    val stationsNames = stations.map(_.name)
+    allRoutes.flatten.find(!stationsNames.contains(_)).map(NoSuchStationErrorMessage)
   }
 
   val validateRouts: Option[ErrorMessage] = {

@@ -35,8 +35,10 @@ object Application extends IOApp {
             case Nil =>
               val stationsSchedule = stationsScheduleToCommonSchedule(t.flatMap(trainToStationsSchedule(_)(roadsInfo)))
               val railwaysSchedule = t.flatMap(trainToRailwaySchedule(_)(roadsInfo))
-              val crashesOnStations = crashesOnStationsSchedule(stationsSchedule)(stationSetToMap(s))
-              val crashesOnRailways = collectOppositeDirect(railwaysSchedule.flatMap(crashesOnRailwaysSchedule(_)(setToMap(railwaysSchedule))))
+              val stationsMap = stationSetToMap(s)
+              val crashesOnStations = crashesOnStationsSchedule(stationsSchedule)(stationsMap)
+              val railwaysMap = setToMap(railwaysSchedule)
+              val crashesOnRailways = collectOppositeDirect(railwaysSchedule.flatMap(crashesOnRailwaysSchedule(_)(railwaysMap)))
               if (crashesOnStations.nonEmpty || crashesOnRailways.nonEmpty)
                 s"Crash points:\n${crashesOnStations.mkString("\n")}\n${crashesOnRailways.mkString("\n")}"
               else "There were no crashes"
