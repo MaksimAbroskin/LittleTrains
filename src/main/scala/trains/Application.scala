@@ -34,7 +34,7 @@ object Application extends IOApp {
           Validator(roadsInfo, s, t).errorsList match {
             case Nil =>
               val stationsSchedule = stationsScheduleToCommonSchedule(t.flatMap(trainToStationsSchedule(_)(roadsInfo)))
-              val railwaysSchedule = t.flatMap(trainToRailwaySchedule(_)(roadsInfo))
+              val railwaysSchedule = railwayScheduleToCommonSchedule(t.flatMap(trainToRailwaySchedule(_)(roadsInfo)))
               val stationsMap = stationSetToMap(s)
               val crashesOnStations = crashesOnStationsSchedule(stationsSchedule)(stationsMap)
               val railwaysMap = setToMap(railwaysSchedule)

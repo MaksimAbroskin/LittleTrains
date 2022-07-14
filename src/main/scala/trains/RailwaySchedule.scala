@@ -45,6 +45,12 @@ object RailwaySchedule {
     }.toSet
   }
 
+  def railwayScheduleToCommonSchedule(set: Set[RailwaySchedule]): Set[RailwaySchedule] = {
+    set.groupBy(_.ends).map {
+      case (k, v) => RailwaySchedule(k, v.flatMap(_.trainsOnRail))
+    }.toSet
+  }
+
   def setToMap(set: Set[RailwaySchedule]): HashMap[(String, String), Set[TrainOnRail]] = {
     set.map(rs => rs.ends -> rs.trainsOnRail).toMap.to(HashMap)
   }
