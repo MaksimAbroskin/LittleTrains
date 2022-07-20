@@ -6,12 +6,9 @@ case class RailwaySchedule(ends: (String, String), trainsOnRail: Set[TrainOnRail
 
 object RailwaySchedule {
 
-  private def checkOppositeDirectIntersection(tr1: TimeRange, tr2: TimeRange): Boolean =
+  private def checkIntersection(tr1: TimeRange, tr2: TimeRange): Boolean =
     (tr2._1 >= tr1._1 && tr2._1 < tr1._2) || (tr2._2 > tr1._1 && tr2._2 <= tr1._2)  ||
       (tr1._1 >= tr2._1 && tr1._1 < tr2._2) || (tr1._2 > tr2._1 && tr1._2 <= tr2._2)
-
-  private def checkOneDirectIntersection(tr1: TimeRange, tr2: TimeRange): Boolean =
-    (tr1._1 > tr2._1 && tr1._2 < tr2._2) || (tr2._1 > tr1._1 && tr2._2 < tr1._2)
 
   def crashesOnRailwaysSchedule(railway: RailwaySchedule)(map: HashMap[(String, String), Set[TrainOnRail]]): Set[RailwaySchedule] = {
     @annotation.tailrec
@@ -19,22 +16,15 @@ object RailwaySchedule {
       tnt match {
         case Nil => acc
         case head :: tail => go(tail, acc ++
-          checkOneDirect(head, railway.ends)(map) ++
-          checkOppositeDirect(head, railway.ends)(map)
+          checkCrashes(head, railway.ends)(map)
         )
       }
     }
     go(railway.trainsOnRail.toList, Set.empty)
   }
 
-  def checkOppositeDirect(train: TrainOnRail, ends: (String, String))(map: HashMap[(String, String), Set[TrainOnRail]]): Set[RailwaySchedule] = {
-    val trainsAndTimes = map.getOrElse(ends.swap, Set.empty).filter(t => checkOppositeDirectIntersection(t._2, train._2))
-    if (trainsAndTimes.isEmpty) Set.empty
-    else Set(RailwaySchedule(ends, trainsAndTimes))
-  }
-
-  def checkOneDirect(train: TrainOnRail, ends: (String, String))(map: HashMap[(String, String), Set[TrainOnRail]]): Set[RailwaySchedule] = {
-    val trainsAndTimes = map.getOrElse(ends, Set.empty).filter(t => checkOneDirectIntersection(t._2, train._2))
+  def checkCrashes(train: TrainOnRail, ends: (String, String))(map: HashMap[(String, String), Set[TrainOnRail]]): Set[RailwaySchedule] = {
+    val trainsAndTimes = map.getOrElse(ends.swap, Set.empty).filter(t => checkIntersection(t._2, train._2))
     if (trainsAndTimes.isEmpty) Set.empty
     else Set(RailwaySchedule(ends, trainsAndTimes))
   }
